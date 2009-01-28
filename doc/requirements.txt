@@ -10,11 +10,14 @@ Introduction
 Description
 -----------
 
-The SystemProcess component presents an easy way to execute and handle external
-applications in an easy and manageable way. It takes care of the underlying
-system calls and specialties like different path formatting or signal handling
-to provide an platform independent but yet flexible way to work with external
-applications.
+The SystemProcess component presents a set of features to execute and handle
+external applications in an easy and manageable way. It takes care of the
+underlying system calls and specialties like different path formatting or
+signal handling to provide a platform independent but yet flexible way to work
+with external applications.
+
+Furthermore it automagically escapes the given command or argument parts to
+make code injection less easy and ensure correct command execution.
 
 
 Current implementation
@@ -74,11 +77,12 @@ File descriptors
 ----------------
 
 - Provide access to the STDIN file descriptor to send arbitrary data to the
-  executed application.
+  executed application. This may only be reasonable during an asynchronous
+  execution.
 
 - Allow the redirection of certain file descriptors to files as well as other
-  file descriptors. (eg. Send all STDOUT output to "/dev/null", or send STDERR
-  output to STDOUT)
+  file descriptors. (eg. Send all STDOUT output to "/tmp/foobar", or send
+  STDERR output to STDOUT)
 
 - Define custom file descriptors which can be accessed to send or receive
   necessary data during the execution. 
@@ -102,7 +106,7 @@ Design goals
 The workflow of a creating a SystemProcess object applying certain arguments as
 well as options to it and finally spawning the process should be intuitive as
 possible. The best way to achieve such an intuitive API would be to design it
-having the fluid interface pattern in mind. The used interface should look
+having the fluent interface pattern in mind. The used interface should look
 something like this::
 
     new ezcSystemProcess( 'echo' )->argument( 'foo' )->execute();
@@ -115,17 +119,25 @@ It should be taken into account that the usual way of informing the parent
 process of errors during the execution of any child is by using error codes
 which are simply returned after the child terminated. These error codes need to
 be made available to the caller. The execute function, if not called
-asynchronously could just return the appropriate error code. But as far as I
-can see the more strictly seen object oriented approach here should be to throw
-an appropriate exception if a non zero exit code is detected. Some applications
-use non zero exit codes even if the execution did not completely go wrong.
-Therefore it might be a good idea to create an option if an exception should be
-thrown or the error code should just be returned.
+asynchronously could just return the appropriate error code. From a strict
+object oriented view it an exception should be thrown if a non zero exit code
+is detected. Nevertheless some applications use non zero exit codes even if
+the execution did not cause a fatal error. Therefore it might be a good idea to
+create an option if an exception should be thrown or the error code should just
+be returned. This option should be local for any created SystemProcess object
+to not interfere with large scale applications where a global change of this
+kind of option could introduce certain side effects.
 
 Currently a well documented implementation of this exists (See `Current
 implementation`_ for details). Not all features are completely covered in a
 satisfactory way yet. But this implementation could be seen as a possible base
 for the work to be done.
+
+Some usage examples of the current implementation can be found on its project
+page, which can be reached under::
+    
+    http://westhoffswelt.de/projects/systemprocess.html
+   
 
 
 ..
